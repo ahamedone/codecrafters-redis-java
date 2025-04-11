@@ -27,8 +27,8 @@ public class Main {
         //System.out.println("Client connected: " + clientSocket.getInetAddress());
         
         // Handle client connection in a separate thread
-        new Thread(() -> handleClient(clientSocket)).start();
-        //handleClient(clientSocket);
+        //new Thread(() -> handleClient(clientSocket)).start();
+        handleClient(clientSocket);
       }
     } catch (IOException e) {
       System.out.println("IOException: " + e.getMessage());
@@ -44,19 +44,21 @@ public class Main {
   }
   
   private static void handleClient(Socket clientSocket) {
-    try {
+    try(OutputStream outputStream = clientSocket.getOutputStream()) {
       BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-      OutputStream outputStream = clientSocket.getOutputStream();
+      
       
       String line;
       // Keep reading commands until the client closes the connection
       while ((line = reader.readLine()) != null) {
-        //System.out.println("Received command: " + line);
-        
+        System.out.println("Received command: " + line);
+        if(line.equalsIgnoreCase("PING")){
+          outputStream.write("+PONG\r\n".getBytes());
+        }
+        outputStream.flush();
         // For now, respond to any command with PONG
         // In a real Redis implementation, you would parse different commands
-        outputStream.write("+PONG\r\n".getBytes());
-        outputStream.flush();
+        
       }
     } catch (IOException e) {
       System.out.println("IOException in client handler: " + e.getMessage());
